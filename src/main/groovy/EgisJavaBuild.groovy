@@ -11,12 +11,15 @@ import java.security.MessageDigest;
 import org.ajoberstar.grgit.Grgit;
 import org.gradle.jvm.tasks.Jar;
 import javax.inject.Inject;
+import org.gradle.api.tasks.*;
+
 
 class EgisJavaBuild implements Plugin<Project> {
- 
+
     def revision;
     def project;
 
+    def DF = "dd MMM yyyy HH:mm:ss"
 
 
     public EgisJavaBuild(def project) {
@@ -28,11 +31,10 @@ class EgisJavaBuild implements Plugin<Project> {
     }
 
     void apply(Project project) {
-
         this.project = project
         def git = Grgit.open(project.file('.'))
-        this.revision = git.head().id
-
+        this.revision = git.head().id.substring(0, 8) + " committed on " + git.head().getDate().format(DF) + ", built on " + new Date().format(DF)
+        println this.revision
         project.task('publish') << {
             def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
             def bucketName = project.libBucket;
@@ -52,25 +54,30 @@ class EgisJavaBuild implements Plugin<Project> {
             });
         }
 
-        project.sourceSets {
-            main {
-                groovy {
-                    srcDir 'src/'
+        project.task([overwrite: true, dependsOn: "jar"], '_deploy', {
+            def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
+            source.visit(new EmptyFileVisitor() {
+                public void visitFile(FileVisitDetails element) {
+                    File to = new File(System.getenv()['WORK_DIR'] + File.separator + "build", element.getFile().name);
+                    project.getLogger().info("Copying ${element.getFile()} to ${to}")
+                    element.getFile().renameTo(to)
                 }
-            }
+            });
+        });
 
+        if (project.getPluginManager().hasPlugin("groovy"))  {
+            project.sourceSets.main.groovy.srcDir +=   'src/'
+            project.sourceSets.test.groovy.srcDir +=   'src/'
+        }
+
+        project.sourceSets {
             api {
                 java {
                     srcDir 'api/'
                 }
             }
-
-            test {
-                groovy {
-                    srcDir 'test/'
-                }
-            }
         }
+
         project.dependencies {
             apiCompile downloadFromLibTxt("libs")
             testCompile downloadFromLibTxt("test-libs")
@@ -94,14 +101,15 @@ class EgisJavaBuild implements Plugin<Project> {
             manifest {
                 attributes("Git-Version": this.revision)
             }
+
             from(project.sourceSets.main.output) {
                 include "com/egis/**"
             }
 
             from("src/") {
-                 include "com/egis/**"
-                 exclude "**/*.java"
-                 exclude "**/*.groovy"
+                include "com/egis/**"
+                exclude "**/*.java"
+                exclude "**/*.groovy"
             }
         })
 
@@ -121,7 +129,7 @@ class EgisJavaBuild implements Plugin<Project> {
                     out = new FileOutputStream(new File(dir, entry.getName()));
                     out << zis
                 } finally {
-                   out.close()
+                    out.close()
                 }
 
             }
@@ -131,7 +139,7 @@ class EgisJavaBuild implements Plugin<Project> {
         } finally {
             zis.close()
         }
- 
+
 
     }
 
@@ -148,7 +156,7 @@ class EgisJavaBuild implements Plugin<Project> {
 
         if (file.name.endsWith(".zip")) {
             println "Unzipping $file.name"
-            unzip(file)                  
+            unzip(file)
         }
     }
 
@@ -209,4 +217,5 @@ class EgisJavaBuild implements Plugin<Project> {
         })
         return this.project.files(_files);
     }
+
 }

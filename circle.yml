@@ -1,0 +1,29 @@
+machine:
+  java:
+    version: oraclejdk8
+dependencies:
+  cache_directories:
+     - "libs"
+     - "gradle-2.7"
+  pre:
+     - if [ ! -e "/home/ubuntu/gradle.zip" ]; then  wget -O /home/ubuntu/gradle.zip https://services.gradle.org/distributions/gradle-2.7-all.zip; fi
+     - if [ ! -e "gradle-2.7" ] ; then unzip /home/ubuntu/gradle.zip; fi
+  override:
+     - gradle-2.7/bin/gradle dependencies
+test:
+  override:
+    - gradle-2.7/bin/gradle jar
+    - gradle-2.7/bin/gradle test
+  post:
+    - cp build/test-results/*.xml $CIRCLE_TEST_REPORTS/ 
+
+deployment:
+  production:
+    branch: master
+    commands:
+      - gradle-2.7/bin/gradle publish
+
+general:
+  artifacts:
+    - "build/libs/*.jar"
+    - "build/reports/"
