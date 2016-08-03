@@ -1,0 +1,9 @@
+hibernate-annotations.jar 4bb436c32848697981587f472fa9d5af
+hibernate-commons-annotations.jar d0210143d969a065b7cca091dd950608
+hibernate-validator-4.2.0.Final.jar 2b6b64bce7156ca6e9b7f5e6a0a6de7c
+validation-api-1.0.0.GA.jar 40c1ee909493066397a6d4d9f8d375d8
+HikariCP-java6-2.3.0.jar 2558c3f984d1b40b8d8da0caf3b32f28
+hsqldb.jar d7300db8c10396c3cec32947c5d25c46
+jta.jar 2587496092f2b5dcc61c459630c56fb3
+leveldbjni-all-1.8.jar 6944e9bc03c7938868e53c96726ae914
+log4jdbc4-1.2beta2.jar 4c8b4c71e17d9b98bedeb49a57e9ed5d

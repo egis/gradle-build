@@ -15,6 +15,7 @@ buildscript {
   }
 }
 
+
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'groovy'
 // Apply other plugins here, e.g. java plugin for a plugin written in java or
@@ -42,7 +43,7 @@ dependencies {
 
 // Unless overridden in the pluginBundle config DSL, the project version will
 // be used as your plugin version when publishing
-version = "1.8"
+version = "2.4"
 group = "com.egis"
 
 // The configuration example below shows the minimum required properties
