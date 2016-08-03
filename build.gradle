@@ -43,7 +43,7 @@ dependencies {
 
 // Unless overridden in the pluginBundle config DSL, the project version will
 // be used as your plugin version when publishing
-version = "2.4"
+version = "2.7"
 group = "com.egis"
 
 // The configuration example below shows the minimum required properties

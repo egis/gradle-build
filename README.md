@@ -1,5 +1,7 @@
 # gradle-build
 
+[![CircleCI](https://circleci.com/gh/egis/gradle-build/tree/master.svg?style=svg)](https://circleci.com/gh/egis/gradle-build/tree/master)
+
 A gradle plugin that combines various tasks and conventions for common builds of Egis.
 
 * Support both Groovy and Java 8 
@@ -74,7 +76,7 @@ The format of the lib.txt:
 
 To download all dependencies:  
 ```shell
-gradle dependencies 
+gradle setup 
 ````
 
 The advantages of using this mechanism:

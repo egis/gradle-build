@@ -18,6 +18,8 @@ class EgisJavaBuild implements Plugin<Project> {
 
     def revision;
     def project;
+    def quick;
+    def buildNo;
 
     def DF = "dd MMM yyyy HH:mm:ss"
 
@@ -30,44 +32,83 @@ class EgisJavaBuild implements Plugin<Project> {
     public EgisJavaBuild() {
     }
 
+    def metadata(int length) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType("plain/text")
+        metadata.setContentLength(length)
+        return metadata
+    }
+
     void apply(Project project) {
+        this.quick = "true" == System.getenv()['QUICK']
         this.project = project
+        this.buildNo = System.getenv()['CIRCLE_BUILD_NUM'];
         def git = Grgit.open(project.file('.'))
-        this.revision = git.head().id.substring(0, 8) + " committed on " + git.head().getDate().format(DF) + ", built on " + new Date().format(DF)
+        this.revision = "debug";
+
+        if (!quick) {
+            this.revision = git.head().id.substring(0, 8) + " committed on " + git.head().getDate().format(DF);
+            if (buildNo != null) {
+                this.revision += "b" + buildNo;
+            } else {
+                this.revision += ", bDEBUG built on " + new Date().format(DF);
+            }
+        }
+
         println this.revision
-        project.task('publish') << {
+        def bucketName = project.libBucket;
+        def prefix = project.libPrefix ?: "libs/";
+        project.task([dependsOn: 'jar'],'publish') << {
             def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
-            def bucketName = project.libBucket;
-            def prefix = project.libPrefix ?: "libs/";
             AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain());
             source.visit(new EmptyFileVisitor() {
                 public void visitFile(FileVisitDetails element) {
+                    String base = element.getFile().getName().split("\\.")[0]
                     String key = prefix + element.getRelativePath();
-                    project.getLogger().info(" => s3://{}/{}", bucketName, key);
-                    File _md5 = new File(element.getFile().getParentFile(), element.getFile().getName() + ".md5")
-                    _md5.text = md5(element.getFile())
-                    project.getLogger().info(" => s3://{}/{}", bucketName, key + ".md5");
+                    String version = prefix + base + "-b" + buildNo + ".jar"
+                    project.getLogger().info("2:s3://{}/{}", bucketName, version);
+                    def md5 =  md5(element.getFile());
 
+                    s3.putObject(new PutObjectRequest(bucketName, version, element.getFile()));
+                    s3.putObject(new PutObjectRequest(bucketName, version + ".md5",  new ByteArrayInputStream(md5.bytes), metadata(md5.length())));
                     s3.putObject(new PutObjectRequest(bucketName, key, element.getFile()));
-                    s3.putObject(new PutObjectRequest(bucketName, key + ".md5", _md5));
+                    s3.putObject(new PutObjectRequest(bucketName, key + ".md5",  new ByteArrayInputStream(md5.bytes), metadata(md5.length()) ));
+                    s3.putObject(new PutObjectRequest(bucketName, key + ".latest",  new ByteArrayInputStream(buildNo.bytes), metadata(buildNo.length())));
+
                 }
             });
         }
 
-        project.task([overwrite: true, dependsOn: "jar"], '_deploy', {
-            def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
-            source.visit(new EmptyFileVisitor() {
+         project.task([dependsOn: 'groovydoc'],'publishDocs') << {
+            AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain());
+            String docs = prefix +  project.ext.pkg + "/"
+            project.fileTree("build/docs/groovydoc").visit(new EmptyFileVisitor() {
                 public void visitFile(FileVisitDetails element) {
-                    File to = new File(System.getenv()['WORK_DIR'] + File.separator + "build", element.getFile().name);
-                    project.getLogger().info("Copying ${element.getFile()} to ${to}")
-                    element.getFile().renameTo(to)
+                String base = element.getFile().getName().split("\\.")[0]
+                    project.getLogger().info(" => s3://{}/{}", bucketName, docs + element.getRelativePath());
+                    s3.putObject(new PutObjectRequest(bucketName,  docs + element.getRelativePath(), element.getFile()));
                 }
+            })
+
+        }
+
+        if (!quick) {
+            project.task([overwrite: true, dependsOn: "jar"], '_deploy', {
+                def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
+                project.getLogger().info(source.toString())
+                source.visit(new EmptyFileVisitor() {
+                    public void visitFile(FileVisitDetails element) {
+                        File to = new File(System.getenv()['WORK_DIR'] + File.separator + "build", element.getFile().name);
+                        project.getLogger().info("Copying ${element.getFile()} to ${to}")
+                        element.getFile().renameTo(to)
+                    }
+                });
             });
-        });
+        }
 
         if (project.getPluginManager().hasPlugin("groovy"))  {
-            project.sourceSets.main.groovy.srcDir +=   'src/'
-            project.sourceSets.test.groovy.srcDir +=   'src/'
+            project.sourceSets.main.groovy.srcDirs += 'src/'
+            project.sourceSets.test.groovy.srcDirs += 'test/'
         }
 
         project.sourceSets {
@@ -78,11 +119,16 @@ class EgisJavaBuild implements Plugin<Project> {
             }
         }
 
+        project.task("setup") << {
+            downloadFromLibTxt("libs")
+            downloadFromLibTxt("test-libs")
+        }
+
         project.dependencies {
-            apiCompile downloadFromLibTxt("libs")
-            testCompile downloadFromLibTxt("test-libs")
+            apiCompile project.fileTree(dir:'libs');
+            testCompile project.fileTree(dir:'test-libs')
             compile this.project.files("${this.project.buildDir}/classes/api")
-            compile downloadFromLibTxt("libs")
+            compile project.fileTree(dir:'libs')
         }
 
         project.task([type: Jar], 'apiJar', {
@@ -112,12 +158,10 @@ class EgisJavaBuild implements Plugin<Project> {
                 exclude "**/*.groovy"
             }
         })
-
     }
 
 
     def unzip(File file) {
-
         File dir = file.getParentFile();
         ZipInputStream zis = null;
         try {
@@ -139,8 +183,6 @@ class EgisJavaBuild implements Plugin<Project> {
         } finally {
             zis.close()
         }
-
-
     }
 
     def download(String url, File file) {
@@ -158,6 +200,18 @@ class EgisJavaBuild implements Plugin<Project> {
             println "Unzipping $file.name"
             unzip(file)
         }
+    }
+
+    def getUrl(String url) {
+        println "Retrieving $url"
+        def out = new ByteArrayOutputStream()
+        new URL(url).openConnection().with { conn ->
+                conn.inputStream.with { inp ->
+                    out << inp
+                    inp.close()
+                }
+        }
+        return new String(out.toByteArray());
     }
 
     def md5(File file) {
@@ -189,30 +243,47 @@ class EgisJavaBuild implements Plugin<Project> {
         }
     }
 
+    def downloadDependencies(def lines, root, group = null) {
+        def _files = [];
+        println "Downloading dependencies for ${root.absolutePath} ${group?:''}"
+        lines.each { dep ->
+            if (dep.startsWith("#")) {
+                return;
+            }
+            def name = dep.split(" ")[0];
+            String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/$name"
+
+            def _md5;
+            if (dep.split(" ").length == 2) {
+                _md5 = dep.split(" ")[1]
+            }
+
+            if (name.endsWith(".txt")) {
+                this.project.buildDir.mkdir()
+                File child = new File(this.project.buildDir, name);
+                download(url, child)
+                _files.addAll(downloadDependencies(child.text.split("\n"), root, name))
+                return;
+            }
+
+            File file = new File(root.parentFile, name);
+            if (!file.exists()) {
+                download(url, file)
+
+            } else if (_md5 != null && !_md5.equals(md5(file))) {
+                println "$name corrupted, expected $_md5 got ${md5(file)}"
+                download(url, file)
+            }
+            _files.add(file)
+        }
+        return _files;
+    }
+
     def downloadFromLibTxt(dir) {
         def _files = [];
         new File(dir).eachFileRecurse({
             if (it.name == 'lib.txt') {
-                println "Downloading dependencies for ${it.path}"
-                it.eachLine { dep ->
-
-                    def name = dep.split(" ")[0]
-                    def _md5;
-                    if (dep.split(" ").length == 2) {
-                        _md5 = dep.split(" ")[1]
-                    }
-
-                    File file = new File(it.parentFile, name);
-                    String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/$name"
-                    if (!file.exists()) {
-                        download(url, file)
-
-                    } else if (_md5 != null && !_md5.equals(md5(file))) {
-                        println "$name corrupted"
-                        download(url, file)
-                    }
-                    _files.add(file)
-                }
+                _files.addAll(downloadDependencies(it.text.split("\n"),it));
             }
         })
         return this.project.files(_files);

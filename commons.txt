@@ -1,6 +1,3 @@
-bcmail-jdk15-1.45.jar 13321fc7eff7bcada7b4fedfb592025c
-bcprov-jdk15-1.45.jar 2062f8e3d15748443ea60a94b266371c
-bctsp-jdk15-1.45.jar 84a2c3383fc991fb9d3902e723d96b7a
 commons-beanutils-1.8.2.jar dc22035b53d80d434ccf1de4f07003ae
 commons-cli-1.1.jar b91e43d736c9013512f049c3cecb9fd7
 commons-codec-1.6.jar 5970f54883b4831b24b97f1125ba27e6
@@ -28,6 +25,7 @@ httpcore-4.3.jar 98c7b290e841f2128680db7cda4047d1
 httpmime-4.3.1.jar 4106820eec9b85dca9b8a1f63677295b
 icu4j-3.8.jar d7de1262efc02d36bad984f544ea91e2
 isorelax-20020414.jar aaadfa545cf928e374fce99ce5e0ed19
+jansi-1.13.jar bc3f73828b3f7ef425b78c182d32f306
 jcifs-1.3.17.jar eb407920042b1bf60468baf993b38825
 jcommon-1.0.23.jar 6bec900e7e7bb6984e6fabf01eb08d2d
 jetty-util-6.1.26.jar 450fedce4f7f8ad3761577b10a664200
@@ -44,9 +42,9 @@ logback-classic-1.0.13.jar b32c8f023fb954ceaaa5b0f5f56859bf
 logback-core-1.0.13.jar 869fc7b0f462e0d0ce3b5c5d42e29355
 metrics-core-3.1.2.jar b8b2de75247322a0c037420f5708e592
 named-regex-matcher.jar 031789293a194947355c8272a8201e3f
-opensaml-2.5.3-all.jar 1bf6f2030ecef0d0595fb7a7af8cfffe
 raygun-core-1.6.0.jar f267c1fb7323503aa816410ace057edc
-opensaml-2.5.3-all.jar 1bf6f2030ecef0d0595fb7a7af8cfffez
+opensaml-2.5.3-all.jar 1bf6f2030ecef0d0595fb7a7af8cfffe
+serializer-2.7.1.jar a6b64dfe58229bdd810263fa0cc54cff
 servlet-2_5-api.jar 48bcb69d269656e4e60fca0c0a2d5b67
 slf4j-api-1.7.5.jar 371b383198fd395d23f67dce374b52fc
 SigPlus2_52.jar 71d6a0c55852ecd37d93036672531c0f
