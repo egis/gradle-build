@@ -1,6 +1,8 @@
 ## Java Code Formatting:
 
-IntelliJ Defaults + Force braces everywhere
+IntelliJ Defaults + Force braces everywhere  
+OR  
+[Google Java Style](https://google.github.io/styleguide/javaguide.html) with 4 spaces for all tabs
 
 ```java
 public class Foo {
