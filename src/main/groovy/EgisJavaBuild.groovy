@@ -1,18 +1,24 @@
-import org.gradle.api.*;
-import org.gradle.api.file.*;
-import org.gradle.api.plugins.*;
-import jp.classmethod.aws.gradle.s3.*;
-import com.amazonaws.services.s3.*;
-import com.amazonaws.services.s3.model.*;
-import com.amazonaws.auth.*;
-import java.io.*;
-import java.util.zip.*;
-import java.security.MessageDigest;
-import org.ajoberstar.grgit.Grgit;
-import org.gradle.jvm.tasks.Jar;
-import javax.inject.Inject;
-import org.gradle.api.tasks.*;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.amazonaws.services.s3.AmazonS3
+import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.model.ObjectMetadata
+import com.amazonaws.services.s3.model.PutObjectRequest
+import groovy.json.JsonSlurper
+import groovy.xml.MarkupBuilder
+import org.ajoberstar.grgit.Grgit
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.file.EmptyFileVisitor
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.jvm.tasks.Jar
 
+import javax.inject.Inject
+import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 class EgisJavaBuild implements Plugin<Project> {
 
@@ -23,6 +29,8 @@ class EgisJavaBuild implements Plugin<Project> {
 
     def DF = "dd MMM yyyy HH:mm:ss"
 
+    def ant = new AntBuilder()
+
 
     public EgisJavaBuild(def project) {
         this.project = project;
@@ -30,6 +38,7 @@ class EgisJavaBuild implements Plugin<Project> {
 
     @Inject
     public EgisJavaBuild() {
+        println "b4"
     }
 
     def metadata(int length) {
@@ -37,6 +46,16 @@ class EgisJavaBuild implements Plugin<Project> {
         metadata.setContentType("plain/text")
         metadata.setContentLength(length)
         return metadata
+    }
+
+
+    def getPkg() {
+        def pkg = null
+
+        if (new File('package.json').exists()) {
+             pkg = new JsonSlurper().parse(new File('package.json'));
+        }
+        return pkg;
     }
 
     void apply(Project project) {
@@ -58,8 +77,8 @@ class EgisJavaBuild implements Plugin<Project> {
         println this.revision
         def bucketName = project.libBucket;
         def prefix = project.libPrefix ?: "libs/";
-        project.task([dependsOn: 'jar'],'publish') << {
-            def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
+        project.task([dependsOn: 'jar'], 'publish') << {
+            def source = project.fileTree("build/libs/").include('*.jar')
             AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain());
             source.visit(new EmptyFileVisitor() {
                 public void visitFile(FileVisitDetails element) {
@@ -67,26 +86,26 @@ class EgisJavaBuild implements Plugin<Project> {
                     String key = prefix + element.getRelativePath();
                     String version = prefix + base + "-b" + buildNo + ".jar"
                     project.getLogger().info("2:s3://{}/{}", bucketName, version);
-                    def md5 =  md5(element.getFile());
+                    def md5 = md5(element.getFile());
 
                     s3.putObject(new PutObjectRequest(bucketName, version, element.getFile()));
-                    s3.putObject(new PutObjectRequest(bucketName, version + ".md5",  new ByteArrayInputStream(md5.bytes), metadata(md5.length())));
+                    s3.putObject(new PutObjectRequest(bucketName, version + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())));
                     s3.putObject(new PutObjectRequest(bucketName, key, element.getFile()));
-                    s3.putObject(new PutObjectRequest(bucketName, key + ".md5",  new ByteArrayInputStream(md5.bytes), metadata(md5.length()) ));
-                    s3.putObject(new PutObjectRequest(bucketName, key + ".latest",  new ByteArrayInputStream(buildNo.bytes), metadata(buildNo.length())));
+                    s3.putObject(new PutObjectRequest(bucketName, key + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())));
+                    s3.putObject(new PutObjectRequest(bucketName, key + ".latest", new ByteArrayInputStream(buildNo.bytes), metadata(buildNo.length())));
 
                 }
             });
         }
 
-         project.task([dependsOn: 'groovydoc'],'publishDocs') << {
+        project.task([dependsOn: 'groovydoc'], 'publishDocs') << {
             AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain());
-            String docs = prefix +  project.ext.pkg + "/"
+            String docs = prefix + project.ext.pkg + "/"
             project.fileTree("build/docs/groovydoc").visit(new EmptyFileVisitor() {
                 public void visitFile(FileVisitDetails element) {
-                String base = element.getFile().getName().split("\\.")[0]
+                    String base = element.getFile().getName().split("\\.")[0]
                     project.getLogger().info(" => s3://{}/{}", bucketName, docs + element.getRelativePath());
-                    s3.putObject(new PutObjectRequest(bucketName,  docs + element.getRelativePath(), element.getFile()));
+                    s3.putObject(new PutObjectRequest(bucketName, docs + element.getRelativePath(), element.getFile()));
                 }
             })
 
@@ -106,7 +125,7 @@ class EgisJavaBuild implements Plugin<Project> {
             });
         }
 
-        if (project.getPluginManager().hasPlugin("groovy"))  {
+        if (project.getPluginManager().hasPlugin("groovy")) {
             project.sourceSets.main.groovy.srcDirs += 'src/'
             project.sourceSets.test.groovy.srcDirs += 'test/'
         }
@@ -119,16 +138,115 @@ class EgisJavaBuild implements Plugin<Project> {
             }
         }
 
+        project.compileJava.options.incremental = true
+        project.compileGroovy.options.incremental = true
+
+        project.apply([plugin: 'idea'])
+
+        project.idea.module {
+            sourceDirs += project.file('src/groovy')
+            excludeDirs += project.file('node_modules/')
+            excludeDirs += project.file('tmp/')
+            excludeDirs += project.file('dist/')
+            excludeDirs += project.file('.gradle')
+            excludeDirs += project.file('build')
+            outputDir = project.file('build/classes')
+        }
+
+        project.idea.project {
+            vcs = 'Git'
+        }
+
         project.task("setup") << {
+            if (getPkg() != null) {
+                project.exec {
+                    executable "npm"
+                    args "run", "setup"
+                }
+            }
+
             downloadFromLibTxt("libs")
             downloadFromLibTxt("test-libs")
         }
 
+        project.task("npm") << {
+            project.exec {
+                executable "npm"
+                args "run", "build"
+            }
+        }
+
+        def resources = {  it,  dir ->
+            it.from ("resources/") {
+                it.include "**/*"
+                it.exclude "**/.keep"
+            }
+
+            def pkg = getPkg();
+            if (pkg != null) {
+                it.from('build') {
+                    it.into("System/plugins/${pkg.plugin}")
+                    it.include("${pkg.mainFile}.js")
+                }
+            }
+
+            it.doFirst {
+                def excludes = []
+                def tmp = "build/tmp2";
+
+                new File(tmp).mkdirs();
+                new File(dir).listFiles().each { f ->
+                    if (f.name.endsWith(".zip") && f.directory) {
+                        excludes += f.name
+                        collapseZip(f, tmp)
+                    }
+                }
+                it.from(tmp) {
+                    it.include "*.zip"
+                    it.into("PT-SCRIPTS")
+                }
+                it.from (dir) {
+                    it.include "**/*"
+                    it.exclude excludes
+                    it.into("PT-SCRIPTS")
+                    it.exclude "**/.keep"
+                }
+            }
+
+            it.from('build/libs/' + project.ext.pkg + '.jar' ) {
+                it.into("System/jars/")
+            }
+        }
+
+        project.task([type: Zip], 'resources') {
+            archiveName project.ext.pkg + "-resources.zip";
+            from("resources/") {
+                include "**/*"
+            }
+        }
+
+        project.task([type: Zip, dependsOn: ['jar','npm']],'upgrade')  {
+            archiveName project.ext.pkg + "-upgrade.zip";
+            resources(it, 'upgrade')
+        }
+
+        project.tasks.jar {
+            dependsOn "classes"
+            mustRunAfter "npm"
+        }
+
+        project.task([type: Zip, dependsOn: 'jar'], 'install') {
+            outputs.upToDateWhen { false }
+            archiveName project.ext.pkg + "-install.zip";
+            resources(it, 'upgrade')
+            resources(it, 'install')
+        }
+
         project.dependencies {
-            apiCompile project.fileTree(dir:'libs');
-            testCompile project.fileTree(dir:'test-libs')
+            apiCompile project.fileTree(dir: 'libs');
+            testCompile project.fileTree(dir: 'test-libs')
             compile this.project.files("${this.project.buildDir}/classes/api")
-            compile project.fileTree(dir:'libs')
+            compile project.fileTree(dir: 'libs')
         }
 
         project.task([type: Jar], 'apiJar', {
@@ -158,8 +276,65 @@ class EgisJavaBuild implements Plugin<Project> {
                 exclude "**/*.groovy"
             }
         })
+
     }
 
+    def collapseZip(File f, String tmp) {
+        if (new File (f, f.name.replaceAll(".zip", ".xml")).exists()){
+            //workflow have an .xml with the same name as the zip
+            def out  = new FileOutputStream(new File(tmp, f.name));
+            ZipOutputStream zipFile = new ZipOutputStream(out)
+            f.listFiles().each { File child ->
+                zipFile.putNextEntry(new ZipEntry(child.name))
+                child.withInputStream { i ->
+                    zipFile << i
+                }
+                zipFile.closeEntry()
+            }
+            zipFile.finish()
+            return;
+        }
+        //else it's a form
+
+        def out  = new FileOutputStream(new File(tmp, f.name));
+        ZipOutputStream zipFile = new ZipOutputStream(out)
+        f.listFiles().each { File child ->
+            def sha  = sha1(child);
+            zipFile.putNextEntry(new ZipEntry(sha))
+            child.withInputStream { i ->
+                zipFile << i
+            }
+            zipFile.closeEntry()
+        }
+
+        StringWriter writer = new StringWriter();
+        def xml = new MarkupBuilder(writer)
+        xml.document {
+            status("Filed")
+            createdBy(name:"Administrator")
+            createdDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+            visibilityId("0")
+
+            filename(f.getName().substring(0, f.name.length() - ".zip".length()))
+            node {
+                path ("System/forms")
+                name("forms")
+            }
+            files {
+                f.listFiles().each { File child ->
+                    file {
+                        path(child.name)
+                        checksum(sha1(child))
+                        length(child.length())
+                    }
+                }
+            }
+        }
+        zipFile.putNextEntry(new ZipEntry("data.xml"));
+        zipFile << new ByteArrayInputStream(writer.toString().bytes)
+        zipFile.closeEntry()
+        zipFile.finish()
+    }
 
     def unzip(File file) {
         File dir = file.getParentFile();
@@ -215,6 +390,14 @@ class EgisJavaBuild implements Plugin<Project> {
     }
 
     def md5(File file) {
+        return checksum("MD5", file)
+    }
+
+    String sha1(File file) {
+        return checksum("SHA1", file);
+    }
+
+    String checksum(String format, File file) {
         if (!file.exists()) {
             return "missing"
 
@@ -224,7 +407,7 @@ class EgisJavaBuild implements Plugin<Project> {
         file.withInputStream { input ->
 
 
-            MessageDigest digest = MessageDigest.getInstance("MD5")
+            MessageDigest digest = MessageDigest.getInstance(format)
             byte[] b = new byte[BUFFER_SIZE];
 
             for (int n = input.read(b); n != -1; n = input.read(b)) {
