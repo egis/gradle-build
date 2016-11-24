@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import org.apache.tools.ant.taskdefs.condition.Os
 
 class EgisJavaBuild implements Plugin<Project> {
 
@@ -30,6 +31,7 @@ class EgisJavaBuild implements Plugin<Project> {
     def DF = "dd MMM yyyy HH:mm:ss"
 
     def ant = new AntBuilder()
+    def npmCommand = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
 
 
     public EgisJavaBuild(def project) {
@@ -160,7 +162,7 @@ class EgisJavaBuild implements Plugin<Project> {
         project.task("setup") << {
             if (getPkg() != null) {
                 project.exec {
-                    executable "npm"
+                    executable this.npmCommand
                     args "run", "setup"
                 }
             }
@@ -171,7 +173,7 @@ class EgisJavaBuild implements Plugin<Project> {
 
         project.task("npm") << {
             project.exec {
-                executable "npm"
+                executable this.npmCommand
                 args "run", "build"
             }
         }
