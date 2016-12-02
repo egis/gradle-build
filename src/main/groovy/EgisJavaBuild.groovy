@@ -141,6 +141,7 @@ class EgisJavaBuild implements Plugin<Project> {
         }
 
         project.compileJava.options.incremental = true
+        project.jar.baseName = project.ext.pkg
         project.compileGroovy.options.incremental = true
 
         project.apply([plugin: 'idea'])
