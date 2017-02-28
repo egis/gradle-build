@@ -27,12 +27,21 @@ class EgisJavaBuild implements Plugin<Project> {
     def project;
     def quick;
     def buildNo;
+    def log = new Logger();
 
+    class Logger {
+         def info(msg) {
+            println msg
+        } 
+        def info(msg, e) {
+            println msg + "," + e;
+        }
+
+    }
     def DF = "dd MMM yyyy HH:mm:ss"
 
     def ant = new AntBuilder()
     def npmCommand = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
-
 
     public EgisJavaBuild(def project) {
         this.project = project;
@@ -40,7 +49,6 @@ class EgisJavaBuild implements Plugin<Project> {
 
     @Inject
     public EgisJavaBuild() {
-        println "b4"
     }
 
     def metadata(int length) {
@@ -48,7 +56,7 @@ class EgisJavaBuild implements Plugin<Project> {
         metadata.setContentType("plain/text")
         metadata.setContentLength(length)
         return metadata
-    }
+   }
 
 
     def getPkg() {
@@ -62,11 +70,16 @@ class EgisJavaBuild implements Plugin<Project> {
 
     void apply(Project project) {
         this.quick = "true" == System.getenv()['QUICK']
+        // this.log = project.getLogger();
         this.project = project
         this.buildNo = System.getenv()['CIRCLE_BUILD_NUM'];
-        def git = Grgit.open(project.file('.'))
         this.revision = "debug";
+        log.info("Apply b5 to ${revision}")
 
+   
+
+        try {
+            def git = Grgit.open(project.file('.'))
         if (!quick) {
             this.revision = git.head().id.substring(0, 8) + " committed on " + git.head().getDate().format(DF);
             if (buildNo != null) {
@@ -75,8 +88,9 @@ class EgisJavaBuild implements Plugin<Project> {
                 this.revision += ", bDEBUG built on " + new Date().format(DF);
             }
         }
-
-        println this.revision
+        } catch (e) {
+            log.info("no git repo found",e);
+        }
         def bucketName = project.libBucket;
         def prefix = project.libPrefix ?: "libs/";
         project.task([dependsOn: 'jar'], 'publish') << {
@@ -116,7 +130,7 @@ class EgisJavaBuild implements Plugin<Project> {
         if (!quick) {
             project.task([overwrite: true, dependsOn: "jar"], '_deploy', {
                 def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
-                project.getLogger().info(source.toString())
+                log.info(source.toString())
                 source.visit(new EmptyFileVisitor() {
                     public void visitFile(FileVisitDetails element) {
                         File to = new File(System.getenv()['WORK_DIR'] + File.separator + "build", element.getFile().name);
@@ -179,6 +193,11 @@ class EgisJavaBuild implements Plugin<Project> {
             }
         }
 
+        project.task("ant") << {
+            print  project.sourceSets.main.output.classesDir
+            new File("build.xml").write(ant_file())
+        }
+
         def resources = {  it,  dir ->
             it.from ("resources/") {
                 it.include "**/*"
@@ -216,7 +235,8 @@ class EgisJavaBuild implements Plugin<Project> {
                 }
             }
 
-            it.from('build/libs/' + project.ext.pkg + '.jar' ) {
+            it.from('build/libs/' ) {
+                it.include "*.jar"
                 it.into("System/jars/")
             }
         }
@@ -473,6 +493,85 @@ class EgisJavaBuild implements Plugin<Project> {
             }
         })
         return this.project.files(_files);
+    }
+
+    def ant_file() {
+        String target = "1.8"
+        String xml =
+                """
+<project name="build.base" basedir="." default="compile">
+
+    <path id="build.classpath">
+        <fileset dir="libs">
+            <include name="*.jar"/>
+        </fileset>
+      
+    </path>
+
+    <path id="test.classpath">
+        <fileset dir="libs">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="test-libs">
+            <include name="*.jar"/>
+        </fileset>
+
+         <dirset dir="${project.sourceSets.main.output.classesDir}" erroronmissingdir="false">
+            <include name="."/>
+        </dirset>
+
+         <dirset dir="${project.sourceSets.api.output.classesDir}" erroronmissingdir="false">
+            <include name="."/>
+        </dirset>
+    </path>
+
+    <taskdef name="groovyc"
+             classname="org.codehaus.groovy.ant.Groovyc"
+             classpathref="build.classpath"/>
+
+    <taskdef name="groovy"
+             classname="org.codehaus.groovy.ant.Groovy"
+             classpathref="build.classpath"/>
+
+    <macrodef name="compile">
+        <attribute name="src"/>
+        <attribute name="dest"/>
+        <attribute name="classpath"/>
+
+        <sequential>
+            <groovyc srcdir="@{src}" destdir="@{dest}" fork="true" indy="true">
+                <classpath>
+                    <path refid="@{classpath}"/>
+                </classpath>
+                <javac debug="on" target="${target}" source="${target}"/>
+            </groovyc>
+        </sequential>
+    </macrodef>
+
+    <target name="compile.test" depends="compile">
+        <mkdir dir="test"/>
+        <compile src="test" dest="bin" classpath="test.classpath"/>
+        <copy todir="bin" overwrite="true">
+            <fileset dir="test">
+                <include name="**\\*"/>
+                <exclude name="**\\*.java"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="api"/>
+        <mkdir dir="src"/>
+        <mkdir dir="${project.sourceSets.main.output.classesDir}"/>
+        <compile src="api" dest="${project.sourceSets.main.output.classesDir}" classpath="build.classpath"/>
+        <compile src="src" dest="${project.sourceSets.main.output.classesDir}" classpath="build.classpath"/>
+    </target>
+
+</project>
+
+""";
+return xml
+
     }
 
 }
