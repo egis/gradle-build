@@ -29,3 +29,5 @@ jaxb-xmldsig-core-1.0.0.jar 53ac0ceaf724c8fecfd15f6a845cb521
 xalan-2.7.1.jar d43aad24f2c143b675292ccfef487f9c
 xmlbeans-2.3.0.jar 64b05e7adad68fa65d02a8b6daa64afb
 xmlgraphics-commons-1.5.jar 86090bc1cfbb6c7bb0efee2d6c6fd7b6
+
+jodconverter-2.2.1.jar 9280cb0150582c156409e4de0771805a
