@@ -20,9 +20,9 @@ groovy-all-2.3.11-indy.jar b1ff5bc15044adfaefdd0dcf43c9b87e
 guava-15.0.jar 2c10bb2ca3ac8b55b0e77e54a7eb3744
 guice-3.0.jar ca1c7ba366884cfcd2cfb48d2395c400
 guice-assistedinject-3.0.jar 64341453ad4102f01761c62a22af0977
-httpclient-4.3.1.jar 7e8234962ae9a98b025e99bfc39edfe6
-httpcore-4.3.jar 98c7b290e841f2128680db7cda4047d1
-httpmime-4.3.1.jar 4106820eec9b85dca9b8a1f63677295b
+httpclient-4.5.3.jar 1965ebb7aca0f9f8faaed3870d8cf689
+httpcore-4.4.6.jar a9fbd503e0802507efeeaffb56bbdf52
+httpmime-4.5.3.jar a00b6287cab2ad554ae3cbdbe983dc88
 icu4j-3.8.jar d7de1262efc02d36bad984f544ea91e2
 isorelax-20020414.jar aaadfa545cf928e374fce99ce5e0ed19
 jansi-1.13.jar bc3f73828b3f7ef425b78c182d32f306
