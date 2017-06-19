@@ -456,6 +456,8 @@ class EgisJavaBuild implements Plugin<Project> {
             if (dep.startsWith("#")) {
                 return;
             }
+
+            dep = dep.split("\r").join("")
             def name = dep.split(" ")[0];
             String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/$name"
 
