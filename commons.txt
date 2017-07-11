@@ -50,6 +50,10 @@ slf4j-api-1.7.5.jar 371b383198fd395d23f67dce374b52fc
 SigPlus2_52.jar 71d6a0c55852ecd37d93036672531c0f
 syslog4j-0.9.46-bin.jar aad5a1180b94729d3ef73fde24e9ece0
 xz-1.0.jar 8c53d7a772f11a88ee95c6ed0c215e49
+runtime-0.4.1.5.jar d129cca4e6a413d5050a4baede223b64
+easywsdl-schema-2.1.jar 96aad350990700b03de562ddc392c0ef
+easywsdl-wsdl-2.1.jar 4201dfb9ed2b88e1c888fa9c037c6d9c
+java-jwt-3.2.0.jar 576454b8c636093364911d4891d0f2c4
 files.txt
 db.txt
 mail.txt
