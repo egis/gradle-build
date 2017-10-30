@@ -32,7 +32,7 @@ class EgisJavaBuild implements Plugin<Project> {
     class Logger {
          def info(msg) {
             println msg
-        } 
+        }
         def info(msg, e) {
             println msg + "," + e;
         }
@@ -76,7 +76,7 @@ class EgisJavaBuild implements Plugin<Project> {
         this.revision = "debug";
         log.info("Apply b5 to ${revision}")
 
-   
+
 
         try {
             def git = Grgit.open(project.file('.'))
@@ -449,6 +449,24 @@ class EgisJavaBuild implements Plugin<Project> {
         }
     }
 
+    def getLatest(String dep) {
+        try {
+            String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/${dep}.latest"
+            return getUrl(url)
+            } catch (e) {
+                return null;
+            }
+    }
+
+    def getMD5(String dep) {
+         try {
+            String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/${dep}.md5"
+            return getUrl(url)
+         } catch (e) {
+             return null;
+         }
+    }
+
     def downloadDependencies(def lines, root, group = null) {
         def _files = [];
         println "Downloading dependencies for ${root.absolutePath} ${group?:''}"
@@ -487,6 +505,24 @@ class EgisJavaBuild implements Plugin<Project> {
         return _files;
     }
 
+
+    def freeze(dir) {
+      def _files = [];
+        new File(dir).eachFileRecurse({
+            if (it.name == 'lib.txt') {
+                for (String dep : it.text.split("\n"))  {
+                    def version = getLatest(dep.split(" ")[0])
+                    if (version != null) {
+                        def latest = dep.replace(".jar", "") + "-b${version}.jar " + getMD5(dep)
+                        it.write(it.text.replace(dep,latest))
+                        println "${it.name}: $dep -> $latest"
+                    }
+                }
+            }
+        })
+        return this.project.files(_files);
+    }
+
     def downloadFromLibTxt(dir) {
         def _files = [];
         new File(dir).eachFileRecurse({
@@ -507,7 +543,7 @@ class EgisJavaBuild implements Plugin<Project> {
         <fileset dir="libs">
             <include name="*.jar"/>
         </fileset>
-      
+
     </path>
 
     <path id="test.classpath">
