@@ -204,6 +204,11 @@ class EgisJavaBuild implements Plugin<Project> {
                 it.exclude "**/.keep"
             }
 
+            it.from ("build/resources/") {
+                it.include "**/*"
+                it.exclude "**/.keep"
+            }
+
             def pkg = getPkg();
             if (pkg != null) {
                 it.from('build') {
