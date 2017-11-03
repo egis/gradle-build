@@ -6,7 +6,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath ("com.gradle.publish:plugin-publish-plugin:0.9.1") {
+    classpath ("com.gradle.publish:plugin-publish-plugin:0.9.9") {
        transitive=true
     }
     classpath ('org.ajoberstar:grgit:1.1.0') {
