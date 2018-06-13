@@ -12,6 +12,3 @@ jobs:
       - run: ./gradlew test
       - store_test_results:
           path: build/test-results
-      - deploy:
-          command: |
-            ./gradlew publish
