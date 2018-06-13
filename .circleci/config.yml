@@ -5,6 +5,7 @@ jobs:
       - image: airdock/oracle-jdk
     steps:
       - checkout
+      - run: chmod +x gradlew
       - run: ./gradlew jar
       - store_artifacts:
           path: build/libs
