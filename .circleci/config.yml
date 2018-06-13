@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: airdock/oracle-jdk
+      - image: egis/build-slave
     steps:
       - checkout
       - run: chmod +x gradlew
