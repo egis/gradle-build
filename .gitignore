@@ -2,3 +2,9 @@ build
 .gradle
 .idea
 *.iml
+.history
+.classpath
+.project
+bin
+.settings
+.vscode

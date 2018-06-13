@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: airdock-io/docker-oracle-jdk
+    steps:
+      - checkout
+      - run: ./gradlew jar
+      - store_artifacts:
+          path: build/libs
+      - run: ./gradlew test
+      - store_test_results:
+          path: build/test-results
+      - deploy:
+          command: |
+            ./gradlew publish
