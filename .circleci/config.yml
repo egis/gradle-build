@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: airdock-io/docker-oracle-jdk
+      - image: airdock/oracle-jdk
     steps:
       - checkout
       - run: ./gradlew jar
