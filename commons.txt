@@ -28,7 +28,6 @@ isorelax-20020414.jar aaadfa545cf928e374fce99ce5e0ed19
 jansi-1.13.jar bc3f73828b3f7ef425b78c182d32f306
 jcifs-1.3.17.jar eb407920042b1bf60468baf993b38825
 jcommon-1.0.23.jar 6bec900e7e7bb6984e6fabf01eb08d2d
-jetty-util-6.1.26.jar 450fedce4f7f8ad3761577b10a664200
 jms-api-2.0.jar 02ba36ec1d821a6d3986ecd4905a86ed
 joda-time-2.9.4.jar e255d8f6e705d3e6918198bceb5458a0
 jsch-0.1.44.jar 182a2b7a3ebec420abddf65b52bfd4f0
