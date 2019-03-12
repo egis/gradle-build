@@ -16,3 +16,6 @@ jobs:
            key: gradle-{{ checksum "build.gradle" }}
       - store_artifacts:
           path: build/libs
+      - deploy:
+          command: |
+            ./gradlew publishPlugins
