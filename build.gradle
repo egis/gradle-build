@@ -49,7 +49,7 @@ group = "com.egis"
 // The configuration example below shows the minimum required properties
 // configured to publish your plugin to the plugin portal
 pluginBundle {
-    website = 'http://www.gradle.org/'
+    website = 'https://www.papertrail.co.za/'
     vcsUrl = 'https://github.com/egis/gradle-build'
     description = 'Master build script for Egis Java projects'
     tags = ['dev']
