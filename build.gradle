@@ -64,6 +64,7 @@ pluginBundle {
 }
 
 task setupPluginUpload << {
+    // KEY and SECRET are defined in CircleCI project
     def key = System.env.KEY
     def secret = System.env.SECRET
 
