@@ -23,18 +23,18 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 class EgisJavaBuild implements Plugin<Project> {
 
-    def revision;
-    def project;
-    def quick;
-    def buildNo;
-    def log = new Logger();
+    def revision
+    def project
+    def quick
+    def buildNo
+    def log = new Logger()
 
     class Logger {
          def info(msg) {
             println msg
         }
         def info(msg, e) {
-            println msg + "," + e;
+            println msg + "," + e
         }
 
     }
@@ -44,7 +44,7 @@ class EgisJavaBuild implements Plugin<Project> {
     def npmCommand = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
 
     public EgisJavaBuild(def project) {
-        this.project = project;
+        this.project = project
     }
 
     @Inject
@@ -52,7 +52,7 @@ class EgisJavaBuild implements Plugin<Project> {
     }
 
     def metadata(int length) {
-        ObjectMetadata metadata = new ObjectMetadata();
+        ObjectMetadata metadata = new ObjectMetadata()
         metadata.setContentType("plain/text")
         metadata.setContentLength(length)
         return metadata
@@ -63,17 +63,16 @@ class EgisJavaBuild implements Plugin<Project> {
         def pkg = null
 
         if (new File('package.json').exists()) {
-             pkg = new JsonSlurper().parse(new File('package.json'));
+             pkg = new JsonSlurper().parse(new File('package.json'))
         }
-        return pkg;
+        return pkg
     }
 
     void apply(Project project) {
         this.quick = "true" == System.getenv()['QUICK']
-        // this.log = project.getLogger();
         this.project = project
-        this.buildNo = System.getenv()['CIRCLE_BUILD_NUM'];
-        this.revision = "debug";
+        this.buildNo = System.getenv()['CIRCLE_BUILD_NUM']
+        this.revision = "debug"
         log.info("Apply b5 to ${revision}")
 
 
@@ -81,47 +80,46 @@ class EgisJavaBuild implements Plugin<Project> {
         try {
             def git = Grgit.open(project.file('.'))
         if (!quick) {
-            this.revision = git.head().id.substring(0, 8) + " committed on " + git.head().getDate().format(DF);
+            this.revision = git.head().id.substring(0, 8) + " committed on " + git.head().getDate().format(DF)
             if (buildNo != null) {
-                this.revision += "b" + buildNo;
+                this.revision += "b" + buildNo
             } else {
-                this.revision += ", bDEBUG built on " + new Date().format(DF);
+                this.revision += ", bDEBUG built on " + new Date().format(DF)
             }
         }
         } catch (e) {
-            log.info("no git repo found",e);
+            log.info("no git repo found",e)
         }
-        def bucketName = project.libBucket;
-        def prefix = project.libPrefix ?: "libs/";
+        def bucketName = project.libBucket
+        def prefix = project.libPrefix ?: "libs/"
         project.task([dependsOn: 'jar'], 'publish') << {
             def source = project.fileTree("build/libs/").include('*.jar')
-            AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain());
+            AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain())
             source.visit(new EmptyFileVisitor() {
                 public void visitFile(FileVisitDetails element) {
                     String base = element.getFile().getName().split("\\.")[0]
-                    String key = prefix + element.getRelativePath();
+                    String key = prefix + element.getRelativePath()
                     String version = prefix + base + "-b" + buildNo + ".jar"
-                    project.getLogger().info("2:s3://{}/{}", bucketName, version);
-                    def md5 = md5(element.getFile());
+                    project.getLogger().info("2:s3://{}/{}", bucketName, version)
+                    def md5 = md5(element.getFile())
 
-                    s3.putObject(new PutObjectRequest(bucketName, version, element.getFile()));
-                    s3.putObject(new PutObjectRequest(bucketName, version + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())));
-                    s3.putObject(new PutObjectRequest(bucketName, key, element.getFile()));
-                    s3.putObject(new PutObjectRequest(bucketName, key + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())));
-                    s3.putObject(new PutObjectRequest(bucketName, key + ".latest", new ByteArrayInputStream(buildNo.bytes), metadata(buildNo.length())));
+                    s3.putObject(new PutObjectRequest(bucketName, version, element.getFile()))
+                    s3.putObject(new PutObjectRequest(bucketName, version + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())))
+                    s3.putObject(new PutObjectRequest(bucketName, key, element.getFile()))
+                    s3.putObject(new PutObjectRequest(bucketName, key + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())))
+                    s3.putObject(new PutObjectRequest(bucketName, key + ".latest", new ByteArrayInputStream(buildNo.bytes), metadata(buildNo.length())))
 
                 }
-            });
+            })
         }
 
         project.task([dependsOn: 'groovydoc'], 'publishDocs') << {
-            AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain());
+            AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain())
             String docs = prefix + project.ext.pkg + "/"
             project.fileTree("build/docs/groovydoc").visit(new EmptyFileVisitor() {
                 public void visitFile(FileVisitDetails element) {
-                    String base = element.getFile().getName().split("\\.")[0]
-                    project.getLogger().info(" => s3://{}/{}", bucketName, docs + element.getRelativePath());
-                    s3.putObject(new PutObjectRequest(bucketName, docs + element.getRelativePath(), element.getFile()));
+                    project.getLogger().info(" => s3://{}/{}", bucketName, docs + element.getRelativePath())
+                    s3.putObject(new PutObjectRequest(bucketName, docs + element.getRelativePath(), element.getFile()))
                 }
             })
 
@@ -133,12 +131,12 @@ class EgisJavaBuild implements Plugin<Project> {
                 log.info(source.toString())
                 source.visit(new EmptyFileVisitor() {
                     public void visitFile(FileVisitDetails element) {
-                        File to = new File(System.getenv()['WORK_DIR'] + File.separator + "build", element.getFile().name);
+                        File to = new File(System.getenv()['WORK_DIR'] + File.separator + "build", element.getFile().name)
                         project.getLogger().info("Copying ${element.getFile()} to ${to}")
                         element.getFile().renameTo(to)
                     }
-                });
-            });
+                })
+            })
         }
 
         if (project.getPluginManager().hasPlugin("groovy")) {
@@ -209,7 +207,7 @@ class EgisJavaBuild implements Plugin<Project> {
                 it.exclude "**/.keep"
             }
 
-            def pkg = getPkg();
+            def pkg = getPkg()
             if (pkg != null) {
                 it.from('build') {
                     it.into("System/plugins/${pkg.plugin}")
@@ -219,9 +217,9 @@ class EgisJavaBuild implements Plugin<Project> {
 
             it.doFirst {
                 def excludes = []
-                def tmp = "build/tmp2";
+                def tmp = "build/tmp2"
 
-                new File(tmp).mkdirs();
+                new File(tmp).mkdirs()
                 new File(dir).listFiles().each { f ->
                     if (f.name.endsWith(".zip") && f.directory) {
                         excludes += f.name
@@ -247,14 +245,14 @@ class EgisJavaBuild implements Plugin<Project> {
         }
 
         project.task([type: Zip], 'resources') {
-            archiveName project.ext.pkg + "-resources.zip";
+            archiveName project.ext.pkg + "-resources.zip"
             from("resources/") {
                 include "**/*"
             }
         }
 
         project.task([type: Zip, dependsOn: ['jar','npm']],'upgrade')  {
-            archiveName project.ext.pkg + "-upgrade.zip";
+            archiveName project.ext.pkg + "-upgrade.zip"
             resources(it, 'upgrade')
         }
 
@@ -265,13 +263,13 @@ class EgisJavaBuild implements Plugin<Project> {
 
         project.task([type: Zip, dependsOn: 'jar'], 'install') {
             outputs.upToDateWhen { false }
-            archiveName project.ext.pkg + "-install.zip";
+            archiveName project.ext.pkg + "-install.zip"
             resources(it, 'upgrade')
             resources(it, 'install')
         }
 
         project.dependencies {
-            apiCompile project.fileTree(dir: 'libs');
+            apiCompile project.fileTree(dir: 'libs')
             testCompile project.fileTree(dir: 'test-libs')
             compile this.project.files("${this.project.buildDir}/classes/api")
             compile project.fileTree(dir: 'libs')
@@ -310,7 +308,7 @@ class EgisJavaBuild implements Plugin<Project> {
     def collapseZip(File f, String tmp) {
         if (new File (f, f.name.replaceAll(".zip", ".xml")).exists()){
             //workflow have an .xml with the same name as the zip
-            def out  = new FileOutputStream(new File(tmp, f.name));
+            def out  = new FileOutputStream(new File(tmp, f.name))
             ZipOutputStream zipFile = new ZipOutputStream(out)
             f.listFiles().each { File child ->
                 zipFile.putNextEntry(new ZipEntry(child.name))
@@ -320,14 +318,14 @@ class EgisJavaBuild implements Plugin<Project> {
                 zipFile.closeEntry()
             }
             zipFile.finish()
-            return;
+            return
         }
         //else it's a form
 
-        def out  = new FileOutputStream(new File(tmp, f.name));
+        def out  = new FileOutputStream(new File(tmp, f.name))
         ZipOutputStream zipFile = new ZipOutputStream(out)
         f.listFiles().each { File child ->
-            def sha  = sha1(child);
+            def sha  = sha1(child)
             zipFile.putNextEntry(new ZipEntry(sha))
             child.withInputStream { i ->
                 zipFile << i
@@ -335,7 +333,7 @@ class EgisJavaBuild implements Plugin<Project> {
             zipFile.closeEntry()
         }
 
-        StringWriter writer = new StringWriter();
+        StringWriter writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
         xml.document {
             status("Filed")
@@ -358,22 +356,22 @@ class EgisJavaBuild implements Plugin<Project> {
                 }
             }
         }
-        zipFile.putNextEntry(new ZipEntry("data.xml"));
+        zipFile.putNextEntry(new ZipEntry("data.xml"))
         zipFile << new ByteArrayInputStream(writer.toString().bytes)
         zipFile.closeEntry()
         zipFile.finish()
     }
 
     def unzip(File file) {
-        File dir = file.getParentFile();
-        ZipInputStream zis = null;
+        File dir = file.getParentFile()
+        ZipInputStream zis = null
         try {
-            zis = new ZipInputStream(new FileInputStream(file));
-            ZipEntry entry;
+            zis = new ZipInputStream(new FileInputStream(file))
+            ZipEntry entry
             while ((entry = zis.getNextEntry()) != null) {
-                FileOutputStream out = null;
+                FileOutputStream out = null
                 try {
-                    out = new FileOutputStream(new File(dir, entry.getName()));
+                    out = new FileOutputStream(new File(dir, entry.getName()))
                     out << zis
                 } finally {
                     out.close()
@@ -382,7 +380,7 @@ class EgisJavaBuild implements Plugin<Project> {
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e)
         } finally {
             zis.close()
         }
@@ -414,7 +412,7 @@ class EgisJavaBuild implements Plugin<Project> {
                     inp.close()
                 }
         }
-        return new String(out.toByteArray());
+        return new String(out.toByteArray())
     }
 
     def md5(File file) {
@@ -422,7 +420,7 @@ class EgisJavaBuild implements Plugin<Project> {
     }
 
     String sha1(File file) {
-        return checksum("SHA1", file);
+        return checksum("SHA1", file)
     }
 
     String checksum(String format, File file) {
@@ -430,27 +428,27 @@ class EgisJavaBuild implements Plugin<Project> {
             return "missing"
 
         }
-        char[] HEX = "0123456789abcdef".toCharArray();
-        def BUFFER_SIZE = 1024;
+        char[] HEX = "0123456789abcdef".toCharArray()
+        def BUFFER_SIZE = 1024
         file.withInputStream { input ->
 
 
             MessageDigest digest = MessageDigest.getInstance(format)
-            byte[] b = new byte[BUFFER_SIZE];
+            byte[] b = new byte[BUFFER_SIZE]
 
             for (int n = input.read(b); n != -1; n = input.read(b)) {
-                digest.update(b, 0, n);
+                digest.update(b, 0, n)
             }
 
-            byte[] identifier = digest.digest();
-            char[] buffer = new char[identifier.length * 2];
+            byte[] identifier = digest.digest()
+            char[] buffer = new char[identifier.length * 2]
 
             for (int i = 0; i < identifier.length; ++i) {
-                buffer[2 * i] = HEX[identifier[i] >> 4 & 15];
-                buffer[2 * i + 1] = HEX[identifier[i] & 15];
+                buffer[2 * i] = HEX[identifier[i] >> 4 & 15]
+                buffer[2 * i + 1] = HEX[identifier[i] & 15]
             }
 
-            return new String(buffer);
+            return new String(buffer)
         }
     }
 
@@ -459,7 +457,7 @@ class EgisJavaBuild implements Plugin<Project> {
             String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/${dep}.latest"
             return getUrl(url)
             } catch (e) {
-                return null;
+                return null
             }
     }
 
@@ -468,36 +466,53 @@ class EgisJavaBuild implements Plugin<Project> {
             String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/${dep}.md5"
             return getUrl(url)
          } catch (e) {
-             return null;
+             return null
          }
     }
 
     def downloadDependencies(def lines, root, group = null) {
-        def _files = [];
+        def _files = []
         println "Downloading dependencies for ${root.absolutePath} ${group?:''}"
         lines.each { dep ->
             if (dep.startsWith("#")) {
-                return;
+                return
             }
 
             dep = dep.split("\r").join("")
-            def name = dep.split(" ")[0];
+            def name = dep.split(" ")[0]
             String url = "https://s3.amazonaws.com/${this.project.libBucket}/libs/$name"
 
-            def _md5;
+            def _md5
             if (dep.split(" ").length == 2) {
                 _md5 = dep.split(" ")[1]
             }
 
             if (name.endsWith(".txt")) {
                 this.project.buildDir.mkdir()
-                File child = new File(this.project.buildDir, name);
-                download(url, child)
+                File child = new File(this.project.buildDir, name)
+                def resourceFile = getClass().getResource("/files/" + name)
+
+                // if txt file exists in resource use it
+                // otherwise download the file from s3
+                if (resourceFile != null) {
+                    StringBuffer sb = new StringBuffer()
+
+                    BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/files/" + name), "UTF-8"))
+                    for (int c = br.read(); c != -1; c = br.read()) sb.append((char)c)
+                    def content = sb.toString()
+                    PrintStream out = new PrintStream(new FileOutputStream(child.path))
+                    out.print(content)
+                    out.close()
+
+                } else {
+                    download(url, child)
+                }
+
                 _files.addAll(downloadDependencies(child.text.split("\n"), root, name))
-                return;
+                return
             }
 
-            File file = new File(root.parentFile, name);
+            File file = new File(root.parentFile, name)
             if (!file.exists()) {
                 download(url, file)
 
@@ -507,12 +522,12 @@ class EgisJavaBuild implements Plugin<Project> {
             }
             _files.add(file)
         }
-        return _files;
+        return _files
     }
 
 
     def freeze(dir) {
-      def _files = [];
+      def _files = []
         new File(dir).eachFileRecurse({
             if (it.name == 'lib.txt') {
                 for (String dep : it.text.split("\n"))  {
@@ -525,17 +540,17 @@ class EgisJavaBuild implements Plugin<Project> {
                 }
             }
         })
-        return this.project.files(_files);
+        return this.project.files(_files)
     }
 
     def downloadFromLibTxt(dir) {
-        def _files = [];
+        def _files = []
         new File(dir).eachFileRecurse({
             if (it.name == 'lib.txt') {
-                _files.addAll(downloadDependencies(it.text.split("\n"),it));
+                _files.addAll(downloadDependencies(it.text.split("\n"),it))
             }
         })
-        return this.project.files(_files);
+        return this.project.files(_files)
     }
 
     def ant_file() {
@@ -612,7 +627,7 @@ class EgisJavaBuild implements Plugin<Project> {
 
 </project>
 
-""";
+"""
 return xml
 
     }
