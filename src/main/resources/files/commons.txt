@@ -44,7 +44,6 @@ named-regex-matcher.jar 031789293a194947355c8272a8201e3f
 raygun-core-1.6.0.jar f267c1fb7323503aa816410ace057edc
 opensaml-2.5.3-all.jar 1bf6f2030ecef0d0595fb7a7af8cfffe
 serializer-2.7.1.jar a6b64dfe58229bdd810263fa0cc54cff
-servlet-2_5-api.jar 48bcb69d269656e4e60fca0c0a2d5b67
 slf4j-api-1.7.5.jar 371b383198fd395d23f67dce374b52fc
 SigPlus2_52.jar 71d6a0c55852ecd37d93036672531c0f
 syslog4j-0.9.46-bin.jar aad5a1180b94729d3ef73fde24e9ece0
