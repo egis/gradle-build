@@ -1,20 +1,26 @@
 // First, apply the publishing plugin
 buildscript {
     repositories {
+        mavenCentral()
+
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+
     }
     dependencies {
+
         classpath("com.gradle.publish:plugin-publish-plugin:0.9.9") {
             transitive = true
         }
         classpath('org.ajoberstar:grgit:1.1.0') {
             transitive = true
         }
+        //implementation group: 'org.hibernate', name: 'hibernate-core', version: '3.5.5-Final' //Thanks for using https://jar-download.com
+
     }
 }
-
+apply plugin:'java'
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'groovy'
 apply plugin: 'idea'
@@ -26,24 +32,28 @@ apply plugin: 'idea'
 // so you should probably use JCenter for dependency resolution in your own
 // project.
 repositories {
-    jcenter()
+    mavenCentral()
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
+
 }
 
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile('org.ajoberstar:grgit:1.1.0') {
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation('org.ajoberstar:grgit:1.1.0') {
         transitive = true
     }
-    compile("jp.classmethod.aws:gradle-aws-plugin:0.+") {
+    implementation("jp.classmethod.aws:gradle-aws-plugin:0.+") {
         transitive = true
     }
 }
 
 // Unless overridden in the pluginBundle config DSL, the project version will
 // be used as your plugin version when publishing
-version = "3.5.$System.env.CIRCLE_BUILD_NUM"
+version = "4.0.$System.env.CIRCLE_BUILD_NUM"
 group = "com.egis"
 
 // The configuration example below shows the minimum required properties
@@ -63,17 +73,22 @@ pluginBundle {
     }
 }
 
-task setupPluginUpload << {
-    // KEY and SECRET are defined in CircleCI project
-    def key = System.env.KEY
-    def secret = System.env.SECRET
 
-    if (!key || !secret) {
-        throw new RuntimeException("KEY and/or SECRET are not defined environment variables")
+
+task setupPluginUpload {
+    doLast{
+        // KEY and SECRET are defined in CircleCI project
+        def key = System.env.KEY
+        def secret = System.env.SECRET
+
+        if (!key || !secret) {
+            throw new RuntimeException("KEY and/or SECRET are not defined environment variables")
+        }
+
+        System.properties.setProperty("gradle.publish.key", key)
+        System.properties.setProperty("gradle.publish.secret", secret)
     }
 
-    System.properties.setProperty("gradle.publish.key", key)
-    System.properties.setProperty("gradle.publish.secret", secret)
 }
 
 tasks.publishPlugins.dependsOn tasks.setupPluginUpload

@@ -8,8 +8,10 @@ import groovy.xml.MarkupBuilder
 import org.ajoberstar.grgit.Grgit
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.EmptyFileVisitor
 import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.jvm.tasks.Jar
 
@@ -92,41 +94,46 @@ class EgisJavaBuild implements Plugin<Project> {
         }
         def bucketName = project.libBucket
         def prefix = project.libPrefix ?: "libs/"
-        project.task([dependsOn: 'jar'], 'publish') << {
-            def source = project.fileTree("build/libs/").include('*.jar')
-            AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain())
-            source.visit(new EmptyFileVisitor() {
-                public void visitFile(FileVisitDetails element) {
-                    String base = element.getFile().getName().split("\\.")[0]
-                    String key = prefix + element.getRelativePath()
-                    String version = prefix + base + "-b" + buildNo + ".jar"
-                    project.getLogger().info("2:s3://{}/{}", bucketName, version)
-                    def md5 = md5(element.getFile())
+        project.task([dependsOn: 'jar'], 'publish')  {
+           doLast {
+                def source = project.fileTree("build/libs/").include('*.jar')
+                AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain())
+                source.visit(new EmptyFileVisitor() {
+                    public void visitFile(FileVisitDetails element) {
+                        String base = element.getFile().getName().split("\\.")[0]
+                        String key = prefix + element.getRelativePath()
+                        String version = prefix + base + "-b" + buildNo + ".jar"
+                        project.getLogger().info("2:s3://{}/{}", bucketName, version)
+                        def md5 = md5(element.getFile())
 
-                    s3.putObject(new PutObjectRequest(bucketName, version, element.getFile()))
-                    s3.putObject(new PutObjectRequest(bucketName, version + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())))
-                    s3.putObject(new PutObjectRequest(bucketName, key, element.getFile()))
-                    s3.putObject(new PutObjectRequest(bucketName, key + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())))
-                    s3.putObject(new PutObjectRequest(bucketName, key + ".latest", new ByteArrayInputStream(buildNo.bytes), metadata(buildNo.length())))
+                        s3.putObject(new PutObjectRequest(bucketName, version, element.getFile()))
+                        s3.putObject(new PutObjectRequest(bucketName, version + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())))
+                        s3.putObject(new PutObjectRequest(bucketName, key, element.getFile()))
+                        s3.putObject(new PutObjectRequest(bucketName, key + ".md5", new ByteArrayInputStream(md5.bytes), metadata(md5.length())))
+                        s3.putObject(new PutObjectRequest(bucketName, key + ".latest", new ByteArrayInputStream(buildNo.bytes), metadata(buildNo.length())))
 
-                }
-            })
+                    }
+                })
+            }
         }
 
-        project.task([dependsOn: 'groovydoc'], 'publishDocs') << {
-            AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain())
-            String docs = prefix + project.ext.pkg + "/"
-            project.fileTree("build/docs/groovydoc").visit(new EmptyFileVisitor() {
-                public void visitFile(FileVisitDetails element) {
-                    project.getLogger().info(" => s3://{}/{}", bucketName, docs + element.getRelativePath())
-                    s3.putObject(new PutObjectRequest(bucketName, docs + element.getRelativePath(), element.getFile()))
-                }
-            })
+        project.task([dependsOn: 'groovydoc'], 'publishDocs') {
+            doLast{
+                AmazonS3 s3 = new AmazonS3Client(new DefaultAWSCredentialsProviderChain())
+                String docs = prefix + project.ext.pkg + "/"
+                project.fileTree("build/docs/groovydoc").visit(new EmptyFileVisitor() {
+                    public void visitFile(FileVisitDetails element) {
+                        project.getLogger().info(" => s3://{}/{}", bucketName, docs + element.getRelativePath())
+                        s3.putObject(new PutObjectRequest(bucketName, docs + element.getRelativePath(), element.getFile()))
+                    }
+                })
+
+            }
 
         }
-
         if (!quick) {
-            project.task([overwrite: true, dependsOn: "jar"], '_deploy', {
+
+            project.task([dependsOn: "jar"], '_deploy', {
                 def source = project.fileTree("build/libs/").include(project.ext.pkg + '*.jar')
                 log.info(source.toString())
                 source.visit(new EmptyFileVisitor() {
@@ -153,7 +160,7 @@ class EgisJavaBuild implements Plugin<Project> {
         }
 
         project.compileJava.options.incremental = true
-        project.jar.baseName = project.ext.pkg
+        project.jar.archiveBaseName = project.ext.pkg
         project.compileGroovy.options.incremental = true
 
         project.apply([plugin: 'idea'])
@@ -172,28 +179,34 @@ class EgisJavaBuild implements Plugin<Project> {
             vcs = 'Git'
         }
 
-        project.task("setup") << {
-            if (getPkg() != null) {
+        project.task("setup") {
+            doLast{
+                if (getPkg() != null) {
+                    project.exec {
+                        executable this.npmCommand
+                        args "run", "setup"
+                    }
+                }
+
+                downloadFromLibTxt("libs")
+                downloadFromLibTxt("test-libs")
+            }
+        }
+
+        project.task("npm") {
+            doLast{
                 project.exec {
                     executable this.npmCommand
-                    args "run", "setup"
+                    args "run", "build"
                 }
             }
-
-            downloadFromLibTxt("libs")
-            downloadFromLibTxt("test-libs")
         }
 
-        project.task("npm") << {
-            project.exec {
-                executable this.npmCommand
-                args "run", "build"
+        project.task("ant") {
+            doLast{
+                print  project.sourceSets.main.output.classesDir
+                new File("build.xml").write(ant_file())
             }
-        }
-
-        project.task("ant") << {
-            print  project.sourceSets.main.output.classesDir
-            new File("build.xml").write(ant_file())
         }
 
         def resources = {  it,  dir ->
@@ -215,7 +228,7 @@ class EgisJavaBuild implements Plugin<Project> {
                 }
             }
 
-            it.doFirst {
+
                 def excludes = []
                 def tmp = "build/tmp2"
 
@@ -236,7 +249,7 @@ class EgisJavaBuild implements Plugin<Project> {
                     it.into("PT-SCRIPTS")
                     it.exclude "**/.keep"
                 }
-            }
+
 
             it.from('build/libs/' ) {
                 it.include "*.jar"
@@ -245,14 +258,14 @@ class EgisJavaBuild implements Plugin<Project> {
         }
 
         project.task([type: Zip], 'resources') {
-            archiveName project.ext.pkg + "-resources.zip"
+            getArchiveFileName().set  project.ext.pkg + "-resources.zip"
             from("resources/") {
                 include "**/*"
             }
         }
 
         project.task([type: Zip, dependsOn: ['jar','npm']],'upgrade')  {
-            archiveName project.ext.pkg + "-upgrade.zip"
+            getArchiveFileName().set  project.ext.pkg + "-upgrade.zip"
             resources(it, 'upgrade')
         }
 
@@ -261,22 +274,24 @@ class EgisJavaBuild implements Plugin<Project> {
             mustRunAfter "npm"
         }
 
-        project.task([type: Zip, dependsOn: 'jar'], 'install') {
+
+        project.task([type: Zip, dependsOn: ['jar','upgrade'] ], 'install' ) {
             outputs.upToDateWhen { false }
-            archiveName project.ext.pkg + "-install.zip"
-            resources(it, 'upgrade')
+            getArchiveFileName().set  project.ext.pkg + "-install.zip"
+
+            //resources(it, 'upgrade')gr
             resources(it, 'install')
         }
 
         project.dependencies {
-            apiCompile project.fileTree(dir: 'libs')
-            testCompile project.fileTree(dir: 'test-libs')
-            compile this.project.files("${this.project.buildDir}/classes/api")
-            compile project.fileTree(dir: 'libs')
+            apiImplementation project.fileTree(dir: 'libs')
+            testImplementation project.fileTree(dir: 'test-libs')
+            implementation this.project.files("${this.project.buildDir}/classes/api")
+            implementation project.fileTree(dir: 'libs')
         }
 
         project.task([type: Jar], 'apiJar', {
-            archiveName = "${this.project.ext.pkg}-api.jar"
+            getArchiveFileName().set ( "${this.project.ext.pkg}-api.jar")
             manifest {
                 attributes("Git-Version": this.revision)
             }
@@ -287,7 +302,7 @@ class EgisJavaBuild implements Plugin<Project> {
 
         project.task([type: Jar], 'srcJar', {
 
-            archiveName = "${this.project.ext.pkg}.jar"
+            getArchiveFileName().set  ( "${this.project.ext.pkg}.jar")
             manifest {
                 attributes("Git-Version": this.revision)
             }
@@ -302,6 +317,7 @@ class EgisJavaBuild implements Plugin<Project> {
                 exclude "**/*.groovy"
             }
         })
+
 
     }
 
