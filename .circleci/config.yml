@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/gradle-build
     docker:
-      - image: egis/docker-build-slave
+      - image: cimg/openjdk:19.0.2
     steps:
       - checkout
       - run: chmod +x gradlew
