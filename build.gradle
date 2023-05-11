@@ -73,6 +73,7 @@ gradlePlugin {
             displayName = 'Egis Master Gradle plugin'
             description = 'Master build script for Egis Java projects'
             implementationClass='EgisJavaBuild'
+            tags.set(['dev'])
         }
     }
 }
