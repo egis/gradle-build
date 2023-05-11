@@ -10,15 +10,18 @@ buildscript {
     }
     dependencies {
 
-        classpath("com.gradle.publish:plugin-publish-plugin:1.2.0") {
-            transitive = true
-        }
+
         classpath('org.ajoberstar:grgit:1.1.0') {
             transitive = true
         }
+
         //implementation group: 'org.hibernate', name: 'hibernate-core', version: '3.5.5-Final' //Thanks for using https://jar-download.com
 
     }
+
+}
+plugins{
+    id 'com.gradle.plugin-publish' version '1.2.0'
 }
 apply plugin:'java'
 apply plugin: "com.gradle.plugin-publish"
@@ -43,7 +46,7 @@ repositories {
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
-    implementation('org.ajoberstar:grgit:1.1.0') {
+    implementation('org.ajoberstar:grgit:1.7.2') {
         transitive = true
     }
     implementation("jp.classmethod.aws:gradle-aws-plugin:0.+") {
@@ -58,17 +61,18 @@ group = "com.egis"
 
 // The configuration example below shows the minimum required properties
 // configured to publish your plugin to the plugin portal
-pluginBundle {
+gradlePlugin {
     website = 'https://www.papertrail.co.za/'
     vcsUrl = 'https://github.com/egis/gradle-build'
     description = 'Master build script for Egis Java projects'
-    tags = ['dev']
+
 
     plugins {
         EgisJavaBuild {
             id = 'com.egis.gradle'
             displayName = 'Egis Master Gradle plugin'
             description = description
+            implementationClass='EgisJavaBuild'
         }
     }
 }
