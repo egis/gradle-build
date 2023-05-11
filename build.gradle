@@ -71,7 +71,7 @@ gradlePlugin {
         EgisJavaBuild {
             id = 'com.egis.gradle'
             displayName = 'Egis Master Gradle plugin'
-            description = description
+            description = 'Master build script for Egis Java projects'
             implementationClass='EgisJavaBuild'
         }
     }
