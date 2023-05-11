@@ -3,22 +3,18 @@ jobs:
   build:
     working_directory: ~/gradle-build
     docker:
-      - image: cimg/openjdk:19.0.2
+      - image: egis/build-slave
     steps:
       - checkout
       - run: chmod +x gradlew
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle" }}
-      - run:
-          name: Build
-          command: |
-            ./gradlew -v
-            ./gradlew jar
+      - run: ./gradlew jar
       - save_cache:
-           paths:
-              - ~/.gradle
-           key: gradle-{{ checksum "build.gradle" }}
+          paths:
+            - ~/.gradle
+          key: gradle-{{ checksum "build.gradle" }}
       - store_artifacts:
           path: build/libs
       - deploy:
