@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/gradle-build
     docker:
-#      - image: egis/build-slave
+      - image: egis/docker-build-slave
     steps:
       - checkout
       - run: chmod +x gradlew
