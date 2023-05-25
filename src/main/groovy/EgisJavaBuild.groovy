@@ -16,8 +16,6 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.jvm.tasks.Jar
 
 import javax.inject.Inject
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
@@ -381,40 +379,28 @@ class EgisJavaBuild implements Plugin<Project> {
     }
 
     def unzip(File file) {
-        String filename =  file.getPath()
-        def destDirectory = filename.substring(0, filename.lastIndexOf('.'))
-
-        if (!Files.exists(Paths.get(destDirectory))) {
-            Files.createDirectories(Paths.get(destDirectory))
-        }
-
+        File dir = file.getParentFile()
         ZipInputStream zis = null
         try {
             zis = new ZipInputStream(new FileInputStream(file))
-
-            ZipEntry entry = zis.getNextEntry()
-
-            while (entry != null) {
-                def path = Paths.get(destDirectory, entry.getName())
-
-                if (!entry.isDirectory()) {
-                    Files.copy(zis, path)
-                } else {
-                    Files.createDirectories(path)
+            ZipEntry entry
+            while ((entry = zis.getNextEntry()) != null) {
+                FileOutputStream out = null
+                try {
+                    out = new FileOutputStream(new File(dir, entry.getName()))
+                    out << zis
+                } finally {
+                    if(out != null){
+                        out.close()
+                    }
                 }
 
-                zis.closeEntry()
-                entry = zis.getNextEntry()
             }
-
-            zis.close()
 
         } catch (IOException e) {
             throw new RuntimeException(e)
         } finally {
-            if(zis != null){
-                zis.close()
-            }
+            zis.close()
         }
     }
 
