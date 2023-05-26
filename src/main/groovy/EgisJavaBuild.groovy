@@ -380,17 +380,22 @@ class EgisJavaBuild implements Plugin<Project> {
 
     def unzip(File file) {
         File dir = file.getParentFile()
+
         ZipInputStream zis = null
         try {
             zis = new ZipInputStream(new FileInputStream(file))
             ZipEntry entry
             while ((entry = zis.getNextEntry()) != null) {
                 FileOutputStream out = null
+                
                 try {
                     out = new FileOutputStream(new File(dir, entry.getName()))
                     out << zis
-                } finally {
-                    if(out != null){
+                } catch(Exception e){
+
+                }
+                finally {
+                    if(out  !=null){
                         out.close()
                     }
                 }
@@ -400,7 +405,9 @@ class EgisJavaBuild implements Plugin<Project> {
         } catch (IOException e) {
             throw new RuntimeException(e)
         } finally {
-            zis.close()
+            if(zis !=null){
+                zis.close()
+            }
         }
     }
 
