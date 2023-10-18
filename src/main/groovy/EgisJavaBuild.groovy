@@ -264,9 +264,26 @@ class EgisJavaBuild implements Plugin<Project> {
             }
         }
 
-        project.task([type: Zip, dependsOn: ['jar','npm']],'upgrade')  {
+        project.task([type: Zip, dependsOn: ['forms','jar','npm']],'upgrade')  {
             getArchiveFileName().set  project.ext.pkg + "-upgrade.zip"
+            resources(it, 'forms')
             resources(it, 'upgrade')
+        }
+
+        project.tasks.forms {
+            String temp = 'forms'
+            log.info('Clearing Directory: ', temp)
+            new File(temp).deleteDir()
+
+            new File(temp).mkdirs()
+
+            new File('upgrade').listFiles().each { f ->
+                if (f.name.endsWith(".zip") && f.directory) {
+                    log.info('Creating form: ', f.name)
+                    collapseZip(f, temp)
+                }
+            }
+
         }
 
         project.tasks.jar {
