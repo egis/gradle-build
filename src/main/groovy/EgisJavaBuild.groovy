@@ -265,6 +265,7 @@ class EgisJavaBuild implements Plugin<Project> {
         }
 
         project.task([type: Zip, dependsOn: ['forms','jar','npm']],'upgrade')  {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             getArchiveFileName().set  project.ext.pkg + "-upgrade.zip"
             resources(it, 'forms')
             resources(it, 'upgrade')
