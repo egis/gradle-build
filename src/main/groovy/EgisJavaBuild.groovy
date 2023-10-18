@@ -277,9 +277,10 @@ class EgisJavaBuild implements Plugin<Project> {
 
         project.task([type: Zip, dependsOn: ['jar','upgrade'] ], 'install' ) {
             outputs.upToDateWhen { false }
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             getArchiveFileName().set  project.ext.pkg + "-install.zip"
 
-            //resources(it, 'upgrade')gr
+            resources(it, 'upgrade')
             resources(it, 'install')
         }
 
@@ -387,7 +388,7 @@ class EgisJavaBuild implements Plugin<Project> {
             ZipEntry entry
             while ((entry = zis.getNextEntry()) != null) {
                 FileOutputStream out = null
-                
+
                 try {
                     out = new FileOutputStream(new File(dir, entry.getName()))
                     out << zis
