@@ -270,7 +270,7 @@ class EgisJavaBuild implements Plugin<Project> {
             resources(it, 'upgrade')
         }
 
-        project.tasks.forms {
+        project.task('forms') {
             String temp = 'forms'
             log.info('Clearing Directory: ', temp)
             new File(temp).deleteDir()
