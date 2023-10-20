@@ -266,7 +266,9 @@ class EgisJavaBuild implements Plugin<Project> {
 
         project.task([type: Zip, dependsOn: ['forms','jar','npm']],'upgrade')  {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-            getArchiveFileName().set  project.ext.pkg + "-upgrade.zip"
+            String ciBuildNumber = System.getenv('CIRCLE_BUILD_NUM')
+            String filename = project.ext.pkg + (ciBuildNumber?: '') + "-upgrade.zip"
+            getArchiveFileName().set(filename)
             resources(it, 'forms')
             resources(it, 'upgrade')
         }
@@ -296,8 +298,10 @@ class EgisJavaBuild implements Plugin<Project> {
         project.task([type: Zip, dependsOn: ['jar','upgrade'] ], 'install' ) {
             outputs.upToDateWhen { false }
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-            getArchiveFileName().set  project.ext.pkg + "-install.zip"
-
+            String ciBuildNumber = System.getenv('CIRCLE_BUILD_NUM')
+            String filename = project.ext.pkg + (ciBuildNumber?: '') + "-install.zip"
+            getArchiveFileName().set(filename)
+            
             resources(it, 'upgrade')
             resources(it, 'install')
         }
