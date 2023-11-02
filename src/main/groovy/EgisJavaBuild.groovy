@@ -358,7 +358,7 @@ class EgisJavaBuild implements Plugin<Project> {
         }
 
         project.tasks.register('downloadJars', Copy) {
-            from configurations.toDownload
+            from project.configurations.toDownload
             into 'libs'
             dependsOn 'setup'
         }
