@@ -282,7 +282,7 @@ class EgisJavaBuild implements Plugin<Project> {
 
         project.task('forms') {
             String temp = 'forms'
-            log.info('Clearing Directory: ', temp)
+            log.info('Clearing Directory: '+ temp)
             new File(temp).deleteDir()
 
             new File(temp).mkdirs()
@@ -335,7 +335,7 @@ class EgisJavaBuild implements Plugin<Project> {
             }
         })
 
-        project.task([type: Jar], 'srcJar', {
+        project.tasks.register( 'srcJar', Jar){
 
             getArchiveFileName().set  ( "${this.project.ext.pkg}.jar")
             manifest {
@@ -351,8 +351,24 @@ class EgisJavaBuild implements Plugin<Project> {
                 exclude "**/*.java"
                 exclude "**/*.groovy"
             }
-        })
+        }
 
+        project.configurations {
+            toDownload
+        }
+
+        project.tasks.register('copyJars', Copy) {
+            from project.configurations.toDownload
+            into 'libs'
+            dependsOn 'dependencies'
+            eachFile {
+                log.info "Copying File: ${it.file}"
+                if (it.relativePath.getFile(destinationDir).exists()) {
+                    log.info 'File Exists, Skipping'
+                    it.exclude()
+                }
+            }
+        }
 
     }
 
