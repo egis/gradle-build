@@ -360,7 +360,7 @@ class EgisJavaBuild implements Plugin<Project> {
         project.tasks.register('copyJars', Copy) {
             from project.configurations.toDownload
             into 'libs'
-            dependsOn 'setup'
+            dependsOn 'dependencies'
             eachFile {
                 log.info "Copying File: ${it.file}"
                 if (it.relativePath.getFile(destinationDir).exists()) {
