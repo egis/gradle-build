@@ -1,0 +1,31 @@
+
+DynamicPDF-7.0.2.jar 9619e7bd6f76705c4bf55e22cdf0a3a7
+fontbox-2.0.29.jar a72b60d8c93807ba29c4d24cc09d58a3
+gson-2.2.4.jar 2f54fc24807a4cad7297012dd8cebf3d
+
+itext-2.1.7.jar 7587a618197a065eac4a453d173d4ed6
+javacsv.jar 757efcbd31d0aa417ae56686fbe09278
+jdom.jar 0b8f97de82fc9529b1028a77125ce4f8
+jfreechart-1.0.19.jar 62f7029723896c27a05bd79d6900dd7f
+jfreesvg-2.0.jar 9089d0e034e4ffb3d6ad1b4ed24f5de4
+json-simple-1.1.1.jar 5cc2c478d73e8454b4c369cee66c5bc7
+json.jar 09a410e0266cbea1976223ee92085485
+jsoup-1.6.1.jar e26efc650436495132fa2cd7a3896ddd
+pdfbox-2.0.29.jar abbc429999c3b2522f1055ddde2b5111
+poi-3.8-20120326-all.jar 7c47d75cece3aacbec8092f34b9f6191
+snakeyaml-1.16.jar 6bedeeed26844c401db1a5f53f880de5
+tagsoup-1.2.jar b11b44149277505c8eea5fc60e9c81d5
+tika-core-1.2.jar 5c45c9289be5324fac866f41dabaa264
+tika-parsers-1.2.jar a507e9d86fc4782aad4a1bf8dfd85399
+
+#for cyclic serializations issued introduced in 2
+gson-backport-1.7.1.jar 63c2a133333f4eaa2e0898df7c37eccc
+
+docx4j-3.2.1.jar e1fe311ae09a7730f5e6d166329aab54
+
+#docx4j dependencies
+dom4j-1.6.1.jar 4d8f51d3fe3900efc6e395be48030d6d
+jaxb-xmldsig-core-1.0.0.jar 53ac0ceaf724c8fecfd15f6a845cb521
+xalan-2.7.1.jar d43aad24f2c143b675292ccfef487f9c
+xmlbeans-2.3.0.jar 64b05e7adad68fa65d02a8b6daa64afb
+xmlgraphics-commons-1.5.jar 86090bc1cfbb6c7bb0efee2d6c6fd7b6
