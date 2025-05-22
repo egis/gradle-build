@@ -1,0 +1,43 @@
+#apache commons
+commons-beanutils-1.9.4.jar 07dc532ee316fe1f2f0323e9bd2f8df4
+commons-cli-1.5.0.jar 6c3b2052160144196118b1f019504388
+commons-codec-1.17.1.jar 7b3438ab4c6d91e0066d410947e43f3e
+commons-collections-3.2.2.jar f54a8510f834a1a57166970bfc982e94
+commons-compress-1.26.2.jar d2c5abbd0a822c0b79cf4f03ead483ee
+commons-dbcp-1.4.jar b004158fab904f37f5831860898b3cd9
+commons-digester-2.1.jar 528445033f22da28f5047b6abcd1c7c9
+commons-email-1.5.jar e72657496d31f152aa26d4122e0850d9
+commons-exec-1.4.0.jar 1ddc906894944e78cf21ee57e5b26903
+commons-fileupload-1.5.jar e57ac8a1a6412886a133a2fa08b89735
+commons-io-2.18.0.jar 8cce74ccf461cd6502ae04c908eca917
+commons-lang-2.6.jar 4d5c1693079575b362edf41500630bbd
+commons-logging-1.2.jar 040b4b4d8eac886f6b4a2a3bd2f31b00
+commons-logging-adapters-1.1.jar efab4a460e39b4e20fa3ee2b8a24d70c
+commons-net-3.9.0.jar 5254d7c277c30a378518e99b9d1d3522
+commons-pool-1.6.jar 5ca02245c829422176d23fa530e919cc
+commons-vfs2-2.10.0.jar df535626616b23cdb5555c40e556155e
+
+#apache pdfbox
+fontbox-2.0.29.jar a72b60d8c93807ba29c4d24cc09d58a3
+pdfbox-2.0.29.jar abbc429999c3b2522f1055ddde2b5111
+pdfbox-debugger-2.0.29.jar a140e1caa81f748ae6ad567a44e282f7
+pdfbox-tools-2.0.29.jar 5ed24859a85dd6c5756fc773ae65dd85
+sqlite-jdbc-3.43.2.1.jar be54580ec5f3ff30266f5e8003e0f123
+
+#apache tika
+tika-core-1.15.jar 5a657f49b1cb3da457c3d1b8c8f72fb4
+tika-parsers-1.15.jar f03986aa49a3eaf101487a463971030f
+ooxml-schemas-1.4.jar e8f3b2f9a80ab82d94fac5bef904d62d
+metadata-extractor-2.9.1.jar 2ca081a3d5fc1bcfbb51cc11808a8b88
+jempbox-1.8.12.jar 8e65171dec17bf5939f539e60d2721c8
+jbig2-imageio-3.0.4.jar c51f45dc3d29bbf716774f9ff9e95ad6
+jai-imageio-jpeg2000-1.4.0.jar d94a09949e890579e85271b319315f3a
+jai-imageio-core-1.4.0.jar 6978d733bfb55c0a82639f724fe5f3bb
+
+
+#apache poi
+poi-3.16.jar 1ef486c7a099aba3286a31501ec280e6
+poi-scratchpad-3.16.jar 3e9a19b14a0c2becc39fd0fcda18cd3d
+poi-ooxml-schemas-3.16.jar e8cb4510f2b245611a61f09d9afadf4c
+poi-ooxml-3.16.jar 1a50b9479b34a0bae4c3416c9f80cdc2
+

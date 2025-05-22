@@ -1,17 +1,3 @@
-commons-vfs2-2.10.0.jar df535626616b23cdb5555c40e556155e
-commons-pool-1.6.jar 5ca02245c829422176d23fa530e919cc
-commons-logging-adapters-1.1.jar efab4a460e39b4e20fa3ee2b8a24d70c
-commons-logging-1.2.jar 040b4b4d8eac886f6b4a2a3bd2f31b00
-commons-lang-2.6.jar 4d5c1693079575b362edf41500630bbd
-commons-io-2.18.0.jar 8cce74ccf461cd6502ae04c908eca917
-commons-fileupload-1.5.jar e57ac8a1a6412886a133a2fa08b89735
-commons-exec-1.4.0.jar 1ddc906894944e78cf21ee57e5b26903
-commons-email-1.5.jar e72657496d31f152aa26d4122e0850d9
-commons-compress-1.26.2.jar d2c5abbd0a822c0b79cf4f03ead483ee
-commons-collections-3.2.2.jar f54a8510f834a1a57166970bfc982e94
-commons-codec-1.17.1.jar 7b3438ab4c6d91e0066d410947e43f3e
-commons-cli-1.5.0.jar 6c3b2052160144196118b1f019504388
-commons-beanutils-1.9.4.jar 07dc532ee316fe1f2f0323e9bd2f8df4
 cron4j-2.2.2.jar 89a5737c080fc319a31133644ffa2e67
 ejb3-persistence.jar fcce49800b85f6d334d3e5a7c39c8184
 freemarker.jar 504431418ae0f3d310c7b2864626f187
@@ -49,30 +35,9 @@ runtime-0.4.1.5.jar d129cca4e6a413d5050a4baede223b64
 easywsdl-schema-2.1.jar 96aad350990700b03de562ddc392c0ef
 easywsdl-wsdl-2.1.jar 4201dfb9ed2b88e1c888fa9c037c6d9c
 java-jwt-3.2.0.jar 576454b8c636093364911d4891d0f2c4
-groovy-2.5.4.jar 8cec8e9eaf5b7f990da5f44282746502
-groovy-console-2.5.4.jar a587bd9645c0cb892c8f7e0d79dd77bb
-groovy-groovysh-2.5.4.jar 6e3177b985afc70aba809ec6bbe2dc02
-groovy-macro-2.5.4.jar fcc7f6ab5603015fe6e5e72bbb47ae70
-groovy-swing-2.5.4.jar 7f22636a5ded23837b958ac1b52da9e2
-groovy-testng-2.5.4.jar 44845b5dee31462bcc256d20ed341e9c
-groovy-ant-2.5.4.jar 4e4eeb2eedd6547e6855866f13ad0ba6
-groovy-datetime-2.5.4.jar 925cc9d14b26ea429ae24f676af07f81
-groovy-jmx-2.5.4.jar 4f0dc3813124d2f5ad8b075c3cd2513d
-groovy-nio-2.5.4.jar 6f0e985cdb31ef64c04e0c1ea8c0d49e
-groovy-templates-2.5.4.jar 2b58872189db335e4d3baaff067d6093
-groovy-xml-2.5.4.jar f3403dfaeef13e395121e520d2326ac8
-groovy-cli-commons-2.5.4.jar 4cdace1bce3622eefc6f6d66bd0fff00
-groovy-docgenerator-2.5.4.jar 5538922fffbec7448f75659a70f28d5f
-groovy-json-2.5.4.jar 4a5f155e4c016d6788c8bab2cfc9a2d4
-groovy-servlet-2.5.4.jar 9dad7a59736128f1b794e649692f2f1f
-groovy-test-2.5.4.jar dff68f049ef63419a247f45855563c83
-groovy-cli-picocli-2.5.4.jar f91192863e0d114d253975803615bb0d
-groovy-groovydoc-2.5.4.jar f95e2dd62b1c8a33b3e85b16a949bd1e
-groovy-jsr223-2.5.4.jar e0c5a7da13d1447bf216a97210f98579
-groovy-sql-2.5.4.jar 705340f8b23ef67ca95473559c1fb864
-groovy-test-junit5-2.5.4.jar 69cf28851be8693454b2d36681fe26ef
-groovy-dateutil-2.5.4.jar 6ed51da7fb018644f7c46f046e821feb
 httpclient-4.5.13.jar 40d6b9075fbd28fa10292a45a0db9457
+groovy-889.txt
+apache-889.txt
 files-889.txt
 db.txt
 mail.txt
