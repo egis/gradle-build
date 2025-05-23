@@ -9,7 +9,7 @@ commons-digester-2.1.jar 528445033f22da28f5047b6abcd1c7c9
 commons-email-1.5.jar e72657496d31f152aa26d4122e0850d9
 commons-exec-1.4.0.jar 1ddc906894944e78cf21ee57e5b26903
 commons-fileupload-1.5.jar e57ac8a1a6412886a133a2fa08b89735
-commons-io-2.18.0.jar 8cce74ccf461cd6502ae04c908eca917
+commons-io-2.0.1.jar edb9481c6eee07f4feaa61502af855da
 commons-lang-2.6.jar 4d5c1693079575b362edf41500630bbd
 commons-logging-1.2.jar 040b4b4d8eac886f6b4a2a3bd2f31b00
 commons-logging-adapters-1.1.jar efab4a460e39b4e20fa3ee2b8a24d70c
