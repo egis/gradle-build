@@ -1,6 +1,7 @@
-bcmail-jdk15-1.45.jar 13321fc7eff7bcada7b4fedfb592025c
-bcprov-jdk15-1.45.jar 2062f8e3d15748443ea60a94b266371c
-bctsp-jdk15-1.45.jar 84a2c3383fc991fb9d3902e723d96b7a
+bcmail-jdk18on-1.77.jar 1e3e689feb09e088dd3219e4a0727289
+bcprov-jdk18on-1.77.jar ca01387064e08db12e1345b474521ff1
+bcutil-jdk18on-1.77.jar b2c48e0e0feda8e2aa200a41243c4e9a
+bcpkix-jdk18on-1.77.jar 0921c60f2c9acc8d1066e01efab546f2
 activation.jar d5dd655f6056a72116f6a0666745a386
 apache-mime4j-0.6.jar afc5fd899633ded3ecfefaf433e42102
 jmsg.jar 0426a6afaee11d920222a1af5e7e0ca3
